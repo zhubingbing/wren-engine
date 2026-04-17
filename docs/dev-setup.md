@@ -42,6 +42,64 @@ cargo install taplo-cli
 
 ---
 
+## 分支协作约定
+
+本仓库建议固定使用下面这套分支职责：
+
+- `upstream/main`：社区主线，来自 `Canner/wren-engine`
+- `main`：本地社区镜像分支，只用于同步 `upstream/main`
+- `origin/dev-bing`：你的个人远端开发分支
+- `dev-bing`：你的本地长期开发分支
+
+约定上：
+
+- 不要把个人开发提交直接放到 `main`
+- `main` 只做 `upstream/main` 的快进同步
+- 日常开发、提交、推送都在 `dev-bing`
+- 社区有更新时，先同步 `main`，再把 `main` 合到 `dev-bing`
+
+### 固化命令
+
+仓库根目录提供了脚本：`scripts/branch-flow.sh`
+
+```bash
+# 查看当前分支和跟踪关系
+./scripts/branch-flow.sh status
+
+# 同步本地 main 到 upstream/main
+./scripts/branch-flow.sh sync-main
+
+# 同步社区主线并合并到 dev-bing
+./scripts/branch-flow.sh sync-dev
+
+# 同步社区主线、合并到 dev-bing、并推送到 origin/dev-bing
+./scripts/branch-flow.sh sync-dev --push
+```
+
+脚本默认使用下面的分支和远端：
+
+```bash
+UPSTREAM_REMOTE=upstream
+ORIGIN_REMOTE=origin
+MAIN_BRANCH=main
+DEV_BRANCH=dev-bing
+```
+
+如果以后你改了分支名，也可以临时覆盖：
+
+```bash
+DEV_BRANCH=my-dev ./scripts/branch-flow.sh sync-dev --push
+```
+
+### 脚本行为说明
+
+- 执行前会检查工作区是否干净，避免在半途切分支
+- `sync-main` 会执行 `git fetch upstream` 和 `git merge --ff-only upstream/main`
+- `sync-dev` 会先同步 `main`，再执行 `git merge main` 到 `dev-bing`
+- `sync-dev --push` 会把合并后的 `dev-bing` 推到 `origin/dev-bing`
+
+---
+
 ## 二、wren-core-py：Rust 语义引擎 Python 绑定
 
 这是最核心的模块。后续所有 Demo 和 ibis-server 都依赖它编译出的 `.so` 文件。

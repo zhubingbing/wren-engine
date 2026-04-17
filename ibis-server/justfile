@@ -47,6 +47,11 @@ run-trace-otlp:
 dev:
     poetry run python -m fastapi dev --port {{ port }}
 
+# Start dev server using wren-core-py venv (unified environment, no duplicate Poetry env)
+dev-unified:
+    QUERY_CACHE_STORAGE_TYPE=local \
+        ../wren-core-py/.venv/bin/python -m fastapi dev --port {{ port }}
+
 # run the pytest tests for the given marker
 test MARKER:
     poetry run pytest -m '{{ MARKER }}'

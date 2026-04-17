@@ -1,0 +1,46 @@
+# Wren Engine 本地开发环境
+# 使用本地已有镜像（0.22.0），无需重新构建
+#
+# 启动：  docker compose up -d
+# 停止：  docker compose down
+# 日志：  docker compose logs -f
+#
+# 服务地址：
+#   ibis-server: http://localhost:8000
+#   java-engine: http://localhost:8080  (内部备用引擎)
+#   Jupyter Lab: http://localhost:8888  (可选，需 profile=jupyter 启动)
+
+services:
+  ibis-server:
+    image: ghcr.io/canner/wren-engine-ibis:0.22.0
+    container_name: wren-ibis
+    ports:
+      - "8000:8000"
+      - "8888:8888"   # Jupyter Lab (可选)
+    environment:
+      # 指向 java-engine 作为 v2 fallback
+      WREN_ENGINE_ENDPOINT: "http://java-engine:8080"
+      # 工作进程数（开发时用 1，减少内存占用）
+      WREN_NUM_WORKERS: "1"
+      # 关闭 OpenTelemetry（开发时）
+      OTLP_ENABLED: "false"
+    depends_on:
+      java-engine:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  java-engine:
+    image: ghcr.io/canner/wren-engine:0.22.0
+    container_name: wren-java
+    ports:
+      - "8080:8080"
+    volumes:
+      # 挂载本地 MDL 配置目录（可放 .json 模型定义文件）
+      - ./etc:/usr/src/app/etc
+    restart: unless-stopped

@@ -20,6 +20,9 @@ mcp-server/workspace/*
 /**/var/
 __pycache__/
 venv/
+**/.venv/
+.cargo/
+.codex
 **/.env*
 **/*.so
 wren-core-py/dist/
